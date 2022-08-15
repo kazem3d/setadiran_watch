@@ -5,6 +5,19 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 from sqlalchemy.sql import exists
 import time
+import logging
+
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+ch = logging.FileHandler('loggs.log')
+st = logging.StreamHandler()
+ch.setFormatter(formatter)
+logger.addHandler(ch)
+logger.addHandler(st)
+
+
 
 headers = {
     'Accept': 'application/json, text/plain, */*',
@@ -20,23 +33,28 @@ headers = {
     'sec-ch-ua-platform': '"Linux"',
 }
 
+break_counter = 0
+
 for page in range(0,10):
     time.sleep(1)
+    logger.info(f'reading page {page}')
+
 
     response = requests.get(f'https://gw.setadiran.ir/api/centralboard/bc/cards/?searchTypeCode=0&boardCode=2,1,3&tagCode=4121,4130,4128,4120,4123,4134,1442,1441,31,32,33,34,35&queryText=&pageNumber={page}&pageSize=5&sort=insertDate,desc', headers=headers)
     
     if response.status_code != 200 :
-        print(f'Error in fetch data - error {response.status_code}')
+        logger.error(f'Error in fetch data - error {response.status_code}')
         break
     data=json.loads(response.text)
     data = data['content']
 
-    engine = create_engine("sqlite:///sqlite.db", echo=True, future=True)
+    engine = create_engine("sqlite:///sqlite.db", future=True)
 
     with Session(engine) as session:
         for row in data :
             if session.query(exists().where(Needs.number == row['number'])).scalar() == True :
-                print('*******duplicate*********')
+                logger.info('*******duplicate*********')
+                break_counter += 1
                 break
 
             insert_dict={
@@ -48,17 +66,13 @@ for page in range(0,10):
                 'board_name' : row['boardName'],
                 'jalali_send_deadline' :row['jalaliSendDeadlineDate'],
                 'jalai_document_deadline' :row['jalaliDocumentDeadlineDate'],
+                'is_sent' : False,
             }
             obj = Needs(**insert_dict)
             session.add(obj)
         session.commit()
+        if break_counter > 4 :
+            break
 
 
-# from sqlalchemy import select
 
-# session = Session(engine)
-
-# stmt = select(User).where(User.name.in_(["spongebob", "sandy"]))
-
-# for user in session.scalars(stmt):
-#     print(user)
