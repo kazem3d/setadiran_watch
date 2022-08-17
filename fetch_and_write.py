@@ -6,17 +6,19 @@ from sqlalchemy.orm import Session
 from sqlalchemy.sql import exists
 import time
 import logging
+from pathlib import Path
 
+
+BASE_DIR = Path(__file__).resolve().parent
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
-ch = logging.FileHandler('loggs.log')
+ch = logging.FileHandler(BASE_DIR / 'loggs.log')
 st = logging.StreamHandler()
 ch.setFormatter(formatter)
 logger.addHandler(ch)
 logger.addHandler(st)
-
 
 
 headers = {
@@ -35,12 +37,12 @@ headers = {
 
 break_counter = 0
 
-for page in range(0,10):
-    time.sleep(1)
+for page in range(0,50):
+    time.sleep(4)
     logger.info(f'reading page {page}')
 
 
-    response = requests.get(f'https://gw.setadiran.ir/api/centralboard/bc/cards/?searchTypeCode=0&boardCode=2,1,3&tagCode=4121,4130,4128,4120,4123,4134,1442,1441,31,32,33,34,35&queryText=&pageNumber={page}&pageSize=5&sort=insertDate,desc', headers=headers)
+    response = requests.get(f'https://gw.setadiran.ir/api/centralboard/bc/cards/?searchTypeCode=0&boardCode=2,1,3&tagCode=4121,4130,4128,4120,4123,4134,1442,1441,31,32,33,34,35&queryText=&pageNumber={page}&pageSize=10&sort=insertDate,desc', headers=headers)
     
     if response.status_code != 200 :
         logger.error(f'Error in fetch data - error {response.status_code}')
@@ -56,6 +58,8 @@ for page in range(0,10):
                 logger.info('*******duplicate*********')
                 break_counter += 1
                 break
+            else :
+                break_counter = 0
 
             insert_dict={
                 'number' : row['number'],
@@ -71,8 +75,5 @@ for page in range(0,10):
             obj = Needs(**insert_dict)
             session.add(obj)
         session.commit()
-        if break_counter > 4 :
+        if break_counter > 3 :
             break
-
-
-
