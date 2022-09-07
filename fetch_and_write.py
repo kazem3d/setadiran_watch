@@ -42,7 +42,7 @@ for page in range(0,50):
     logger.info(f'reading page {page}')
 
 
-    response = requests.get(f'https://gw.setadiran.ir/api/centralboard/bc/cards/?searchTypeCode=0&boardCode=2,1,3&tagCode=4121,4130,4128,4120,4123,4134,1442,1441,31,32,33,34,35&queryText=&pageNumber={page}&pageSize=10&sort=insertDate,desc', headers=headers)
+    response = requests.get(f'https://gw.setadiran.ir/api/centralboard/cards/?searchTypeCode=0&boardCode=2,1,3&tagCode=4121,4130,4128,4120,4123,4134,1442,1441,31,32,33,34,35&queryText=&pageNumber={page}&pageSize=10&sort=insertDate,desc', headers=headers)
     
     if response.status_code != 200 :
         logger.error(f'Error in fetch data - error {response.status_code}')
