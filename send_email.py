@@ -21,7 +21,7 @@ engine = create_engine("sqlite:///sqlite.db", echo=True, future=True)
 
 EMAIL_USERNAME = os.environ.get('EMAIL_USERNAME')
 EMAIL_PASSWORD = os.environ.get('EMAIL_PASSWORD')
-contacts = ['rezaghanaty@gmail.com', 'kazem3d@gmail.com',]
+contacts = ['rezaghanaty@gmail.com', 'kazem3d@gmail.com', ]
 
 
 class DesireContent:
@@ -31,17 +31,14 @@ class DesireContent:
     '''
 
     def __init__(self, organization_name='', title=''):
-        self.__organization_name = organization_name
-        self.__title = title
+        self.__select_query = select(Needs).where(Needs.is_sent == False,
+                                                  Needs.org_name.contains(organization_name),
+                                                  Needs.title.contains(title))
         self.__context = ''
 
     def __search_database(self):
         with Session(engine) as session:
-            stmt = select(Needs).where(Needs.is_sent == False,
-                                       Needs.org_name.contains(
-                                           self.__organization_name),
-                                       Needs.title.contains(self.__title))
-            for row in session.execute(stmt).scalars().all():
+            for row in session.execute(self.__select_query).scalars().all():
                 self.__context += f"{row.board_name} شماره نیاز: {row.number} -- عنوان: {row.title} -- {row.org_name} -- شهر: {row.city_name} \n \n"
             session.commit()
 
@@ -49,15 +46,12 @@ class DesireContent:
         self.__search_database()
         return self.__context
 
-    def tag_is_sent(self):
+    def is_sent(self):
         with Session(engine) as session:
-            stmt = select(Needs).where(Needs.is_sent == False,
-                                       Needs.org_name.contains(
-                                           self.__organization_name),
-                                       Needs.title.contains(self.__title))
-            for row in session.execute(stmt).scalars().all():
+            for row in session.execute(self.__select_query).scalars().all():
                 row.is_sent = True
             session.commit()
+
 
 
 class EmailContext:
@@ -77,16 +71,15 @@ class EmailContext:
 
 
 if __name__ == '__main__':
-
     rahdari_context = DesireContent(organization_name='راهداری')
     context = rahdari_context.get_context()
     email_obj = EmailContext(EMAIL_USERNAME, contacts,
                              'اعلام نیاز های راهداری کل کشور', context)
     email_obj.send_email()
-    rahdari_context.tag_is_sent()
+    rahdari_context.is_sent()
 
     software_context = DesireContent(title='نرم افزار')
     email_obj = EmailContext(EMAIL_USERNAME, 'kazem3d@gmail.com',
                              'اعلام نیاز های نرم افزاری', software_context.get_context())
     email_obj.send_email()
-    software_context.tag_is_sent()
+    software_context.is_sent()
