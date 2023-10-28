@@ -1,8 +1,8 @@
 import smtplib
 import logging
-import os
+from settings import EMAIL_PASSWORD,EMAIL_USERNAME
 from email.message import EmailMessage
-from db_config import Needs
+from src.db_config import Needs
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 from sqlalchemy import select
@@ -19,9 +19,7 @@ from sqlalchemy import select
 
 engine = create_engine("sqlite:///sqlite.db", echo=True, future=True)
 
-EMAIL_USERNAME = os.environ.get('EMAIL_USERNAME')
-EMAIL_PASSWORD = os.environ.get('EMAIL_PASSWORD')
-contacts = ['list-of-email']
+
 
 
 
@@ -80,11 +78,3 @@ class EmailContext:
                 smtp.send_message(self.__email_message)
 
 
-if __name__ == '__main__':
-
-
-    software_context = DesireContent(title='نرم افزار')
-    email_obj = EmailContext(EMAIL_USERNAME, 'kazem3d@gmail.com',
-                             'اعلام نیاز های نرم افزاری', software_context.get_context())
-    email_obj.send_email()
-    software_context.tag_is_sent()

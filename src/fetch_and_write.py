@@ -1,15 +1,15 @@
 import requests
 import json
-from db_config import Needs
+from src.db_config import Needs
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 from sqlalchemy.sql import exists
 import time
 import logging
-from pathlib import Path
+from settings import BASE_DIR
 
 
-BASE_DIR = Path(__file__).resolve().parent
+
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
