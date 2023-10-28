@@ -28,6 +28,3 @@ class Needs(Base):
 
 engine = create_engine("sqlite:///sqlite.db", echo=True, future=True)
 Base.metadata.create_all(engine)
-
-
-
