@@ -1,6 +1,6 @@
 import smtplib
 import logging
-from settings import EMAIL_PASSWORD,EMAIL_USERNAME
+from app.settings import EMAIL_PASSWORD,EMAIL_USERNAME
 from email.message import EmailMessage
 from src.db_config import Needs
 from sqlalchemy import create_engine
